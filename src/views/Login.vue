@@ -10,8 +10,8 @@
           checking out The Definitive Guide to Getting Started with Vue.js
         </p>
       </div>
-      <div class="col2">
-        <form @submit.prevent>
+      <div class="col2" :class="{ 'signup-form': !showLoginForm }">
+        <form v-if="showLoginForm" @submit.prevent>
           <h1>Welcome Back</h1>
 
           <label for="email1">Email</label>
@@ -34,10 +34,10 @@
 
           <div class="extras">
             <a>Forgot Password</a>
-            <a>Create an Accouunt</a>
+            <a @click="toggleForm">Create an Account</a>
           </div>
         </form>
-        <form @submit.prevent>
+        <form v-else @submit.prevent>
           <h1>Get Started</h1>
 
           <label for="name">Name</label>
@@ -75,7 +75,7 @@
           <button @click="signup" class="button">Sign Up</button>
 
           <div class="extras">
-            <a>Back to Log In</a>
+            <a @click="toggleForm">Back to Log In</a>
           </div>
         </form>
       </div>
@@ -99,7 +99,8 @@ export default {
         title: '',
         email: '',
         password: ''
-      }
+      },
+      showLoginForm: true
     }
   },
   methods: {
@@ -136,6 +137,9 @@ export default {
         .catch(err => {
           console.log(err)
         })
+    },
+    toggleForm() {
+      this.showLoginForm = !this.showLoginForm
     }
   }
 }
