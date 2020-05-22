@@ -37,6 +37,47 @@
             <a>Create an Accouunt</a>
           </div>
         </form>
+        <form @submit.prevent>
+          <h1>Get Started</h1>
+
+          <label for="name">Name</label>
+          <input
+            v-model.trim="signupForm.name"
+            type="text"
+            placeholder="Your Name"
+            id="name"
+          />
+
+          <label for="title">Title</label>
+          <input
+            v-model.trim="signupForm.title"
+            type="text"
+            placeholder="Company"
+            title="title"
+          />
+
+          <label for="email2">Email</label>
+          <input
+            v-model.trim="signupForm.email"
+            type="text"
+            placeholder="your@email.com"
+            id="email2"
+          />
+
+          <label for="password2">Password</label>
+          <input
+            v-model.trim="signupForm.password"
+            type="password"
+            placeholder="min 6 characters"
+            id="password2"
+          />
+
+          <button @click="signup" class="button">Sign Up</button>
+
+          <div class="extras">
+            <a>Back to Log In</a>
+          </div>
+        </form>
       </div>
     </section>
   </div>
@@ -50,6 +91,12 @@ export default {
   data() {
     return {
       loginForm: {
+        email: '',
+        password: ''
+      },
+      signupForm: {
+        name: '',
+        title: '',
         email: '',
         password: ''
       }
