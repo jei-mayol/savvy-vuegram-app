@@ -1,5 +1,10 @@
 <template>
   <div id="login">
+    <transition name="fade">
+      <div v-if="performingRequest" class="loading">
+        <p>Loading...</p>
+      </div>
+    </transition>
     <section>
       <div class="col1">
         <h1>Vuegram</h1>
@@ -78,6 +83,11 @@
             <a @click="toggleForm">Back to Log In</a>
           </div>
         </form>
+        <transition name="fade">
+          <div v-if="errorMsg !== ''" class="error-msg">
+            <p>{{ errorMsg }}</p>
+          </div>
+        </transition>
       </div>
     </section>
   </div>
@@ -100,23 +110,32 @@ export default {
         email: '',
         password: ''
       },
-      showLoginForm: true
+      showLoginForm: true,
+      performingRequest: false,
+      errorMsg: ''
     }
   },
   methods: {
     login() {
+      this.performingRequest = true
+
       firebase.auth
         .signInWithEmailAndPassword( this.loginForm.email, this.loginForm.password)
         .then(user => {
           this.$store.commit('setCurrentUser', user.user)
           this.$store.dispatch('fetchUserProfile')
+          this.performingRequest = false
           this.$router.push('/dashboard')
         })
         .catch(err => {
           console.log(err)
+          this.performingRequest = false
+          this.errorMsg = err.message
         })
     },
     signup() {
+      this.performingRequest = true
+
       firebase.auth
         .createUserWithEmailAndPassword(this.signupForm.email, this.signupForm.password)
         .then(user => {
@@ -131,14 +150,17 @@ export default {
             })
             .then(() => {
               this.$store.dispatch('fetchUserProfile')
+              this.performingRequest = false
               this.$router.push('/dashboard')
             })
         })
         .catch(err => {
+          this.performingRequest = false
           console.log(err)
         })
     },
     toggleForm() {
+      this.errorMsg = ''
       this.showLoginForm = !this.showLoginForm
     }
   }
