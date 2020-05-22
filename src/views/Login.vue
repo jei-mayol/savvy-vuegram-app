@@ -15,7 +15,10 @@
           checking out The Definitive Guide to Getting Started with Vue.js
         </p>
       </div>
-      <div class="col2" :class="{ 'signup-form': !showLoginForm }">
+      <div
+        class="col2"
+        :class="{ 'signup-form': !showLoginForm && !showForgotPassword }"
+      >
         <form v-if="showLoginForm" @submit.prevent>
           <h1>Welcome Back</h1>
 
@@ -38,11 +41,11 @@
           <button @click="login" class="button">Log In</button>
 
           <div class="extras">
-            <a>Forgot Password</a>
+            <a @click="togglePasswordReset">Forgot Password</a>
             <a @click="toggleForm">Create an Account</a>
           </div>
         </form>
-        <form v-else @submit.prevent>
+        <form v-if="!showLoginForm && !showForgotPassword" @submit.prevent>
           <h1>Get Started</h1>
 
           <label for="name">Name</label>
@@ -83,6 +86,31 @@
             <a @click="toggleForm">Back to Log In</a>
           </div>
         </form>
+        <form v-if="showForgotPassword" @submit.prevent class="password-reset">
+          <div v-if="!passwordResetSuccess">
+            <h1>Reset Password</h1>
+            <p>We will send you an email to reset your password</p>
+
+            <label for="email3">Email</label>
+            <input
+              v-model.trim="passwordForm.email"
+              type="text"
+              placeholder="your@email.com"
+              id="email3"
+            />
+
+            <button @click="resetPassword" class="button">Submit</button>
+
+            <div class="extras">
+              <a @click="togglePasswordReset">Back to Log In</a>
+            </div>
+          </div>
+          <div v-else>
+            <h1>Email Sent</h1>
+            <p>Check your email for a link to reset your password</p>
+            <button @click="togglePasswordReset" class="button">Back to Log In</button>
+          </div>
+        </form>
         <transition name="fade">
           <div v-if="errorMsg !== ''" class="error-msg">
             <p>{{ errorMsg }}</p>
@@ -110,12 +138,36 @@ export default {
         email: '',
         password: ''
       },
+      passwordForm: {
+        email: ''
+      },
       showLoginForm: true,
+      showForgotPassword: false,
+      passwordResetSuccess: false,
       performingRequest: false,
       errorMsg: ''
     }
   },
   methods: {
+    toggleForm() {
+      this.errorMsg = ''
+      this.loginForm.password = ''
+      this.signupForm.password = ''
+      this.showLoginForm = !this.showLoginForm
+    },
+    togglePasswordReset() {
+      this.errorMsg = ''
+      this.loginForm.password = ''
+      if (this.showForgotPassword) {
+        this.showForgotPassword = false
+        this.showLoginForm = true
+        this.passwordResetSuccess = false
+      }
+      else {
+        this.showForgotPassword = true
+        this.showLoginForm = false
+      }
+    },
     login() {
       this.performingRequest = true
 
@@ -159,9 +211,22 @@ export default {
           console.log(err)
         })
     },
-    toggleForm() {
-      this.errorMsg = ''
-      this.showLoginForm = !this.showLoginForm
+    resetPassword() {
+      this.performingRequest = true
+
+      firebase.auth
+        .sendPasswordResetEmail(this.passwordForm.email)
+        .then(() => {
+          this.performingRequest = false
+          this.passwordResetSuccess = true
+          this.passwordForm.email = ''
+        })
+        .catch(err => {
+          console.log(err)
+          this.performingRequest = false
+          this.passwordResetSuccess = false
+          this.errorMsg = err.message
+        })
     }
   }
 }
