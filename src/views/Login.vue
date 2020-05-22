@@ -114,6 +114,28 @@ export default {
         .catch(err => {
           console.log(err)
         })
+    },
+    signup() {
+      firebase.auth
+        .createUserWithEmailAndPassword(this.signupForm.email, this.signupForm.password)
+        .then(user => {
+          this.$store.commit('setCurrentUser', user.user)
+
+          // create user object in db
+          firebase.usersCollection
+            .doc(user.uid)
+            .set({
+              name: this.signupForm.name,
+              title: this.signupForm.title
+            })
+            .then(() => {
+              this.$store.dispatch('fetchUserProfile')
+              this.$router.push('/dashboard')
+            })
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   }
 }
