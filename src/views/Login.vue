@@ -11,14 +11,24 @@
         </p>
       </div>
       <div class="col2">
-        <form>
+        <form @submit.prevent>
           <h1>Welcome Back</h1>
 
           <label for="email1">Email</label>
-          <input type="text" placeholder="your@email.com" id="email1" />
+          <input
+            v-model.trim="loginForm.email"
+            type="text"
+            placeholder="your@email.com"
+            id="email1"
+          />
 
           <label for="password1">Password</label>
-          <input type="password" placeholder="******" id="password1" />
+          <input
+            v-model.trim="loginForm.password"
+            type="password"
+            placeholder="******"
+            id="password1"
+          />
 
           <button class="button">Log In</button>
 
@@ -34,6 +44,14 @@
 
 <script>
 export default {
-  name: "Login"
+  name: 'Login',
+  data() {
+    return {
+      loginForm: {
+        email: '',
+        password: ''
+      }
+    }
+  }
 }
 </script>
