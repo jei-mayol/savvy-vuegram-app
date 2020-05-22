@@ -124,7 +124,7 @@ export default {
 
           // create user object in db
           firebase.usersCollection
-            .doc(user.uid)
+            .doc(user.user.uid)
             .set({
               name: this.signupForm.name,
               title: this.signupForm.title
