@@ -1,11 +1,34 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import Vue from 'vue'
+import Vuex from 'vuex'
+const firebase = require('../firebaseConfig')
 
-Vue.use(Vuex);
+Vue.use(Vuex)
 
 export default new Vuex.Store({
-  state: {},
-  mutations: {},
-  actions: {},
+  state: {
+    currentUser: null,
+    userProfile: {}
+  },
+  mutations: {
+    setCurrentUser(state, val) {
+      state.currentUser = val
+    },
+    setUserProfile(state, val) {
+      state.userProfile = val
+    }
+  },
+  actions: {
+    fetchUserProfile({ commit, state }) {
+      firebase.usersCollection
+        .doc(state.currentUser.uid)
+        .get()
+        .then(res => {
+          commit('setUserProfile', res.data())
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    }
+  },
   modules: {}
-});
+})

@@ -30,7 +30,7 @@
             id="password1"
           />
 
-          <button class="button">Log In</button>
+          <button @click="login" class="button">Log In</button>
 
           <div class="extras">
             <a>Forgot Password</a>
@@ -43,6 +43,8 @@
 </template>
 
 <script>
+const firebase = require('../firebaseConfig')
+
 export default {
   name: 'Login',
   data() {
@@ -51,6 +53,20 @@ export default {
         email: '',
         password: ''
       }
+    }
+  },
+  methods: {
+    login() {
+      firebase.auth
+        .signInWithEmailAndPassword( this.loginForm.email, this.loginForm.password)
+        .then(user => {
+          this.$store.commit('setCurrentUser', user.user)
+          this.$store.dispatch('fetchUserProfile')
+          this.$router.push('/dashboard')
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   }
 }
