@@ -8,15 +8,21 @@
           <div class="create-post">
             <p>Create a post</p>
             <form @submit.prevent>
-              <textarea></textarea>
-              <button class="button">post</button>
+              <textarea v-model.trim="post.content"></textarea>
+              <button
+                @click="createPost"
+                :disabled="post.content == ''"
+                class="button"
+              >
+                post
+              </button>
             </form>
           </div>
         </div>
       </div>
       <div class="col2">
         <div>
-          <p class="no-results">There are currently no posts.</p>
+          <p>There are currently no posts.</p>
         </div>
       </div>
     </section>
@@ -25,19 +31,37 @@
 
 <script>
 import { mapState } from 'vuex'
+const firebase = require('../firebaseConfig')
 
 export default {
   name: 'Dashboard',
   data() {
     return {
-
+      post: {
+        content: ''
+      },
     }
   },
   computed: {
-    ...mapState(['userProfile'])
+    ...mapState(['userProfile', 'currentUser'])
   },
   methods: {
-
+    createPost() {
+      firebase.postsCollection.add({
+        createdOn: new Date(),
+        content: this.post.content,
+        userId: this.currentUser.uid,
+        userName: this.userProfile.name,
+        comments: 0,
+        likes: 0
+      })
+      .then(ref => {
+        this.post.content = ''
+      })
+      .catch(err => {
+        console.log(err)
+      })
+    }
   }
 }
 </script>
