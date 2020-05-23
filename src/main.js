@@ -16,5 +16,10 @@ fb.auth.onAuthStateChanged(user => {
       store,
       render: h => h(App)
     }).$mount('#app')
+
+    if (user) {
+      store.commit('setCurrentUser', user)
+      store.dispatch('fetchUserProfile')
+    }
   }
 })
