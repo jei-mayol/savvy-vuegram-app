@@ -208,6 +208,7 @@ export default {
         })
         .catch(err => {
           this.performingRequest = false
+          this.errorMsg = err.message
           console.log(err)
         })
     },
