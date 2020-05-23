@@ -4,10 +4,34 @@ const firebase = require('../firebaseConfig')
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+firebase.auth.onAuthStateChanged(user => {
+  if (user) {
+    console.log('store/index.js onAuthStateChanged(), with logged in user')
+
+    store.commit('setCurrentUser', user)
+    store.dispatch('fetchUserProfile')
+
+    firebase.postsCollection
+      .orderBy('createdOn', 'desc')
+      .onSnapshot(querySnapShot => {
+        let posts = []
+
+        querySnapShot.forEach(doc => {
+          let post = doc.data()
+          post.id = doc.id
+          posts.push(post)
+        })
+
+        store.commit('setPosts', posts)
+      })
+  }
+})
+
+export const store = new Vuex.Store({
   state: {
     currentUser: null,
-    userProfile: {}
+    userProfile: {},
+    posts: []
   },
   mutations: {
     setCurrentUser(state, val) {
@@ -15,12 +39,16 @@ export default new Vuex.Store({
     },
     setUserProfile(state, val) {
       state.userProfile = val
+    },
+    setPosts(state, val) {
+      state.posts = val
     }
   },
   actions: {
     clearData({ commit }) {
       commit('setCurrentUser', null)
       commit('setUserProfile', {})
+      commit('setPosts', [])
     },
     fetchUserProfile({ commit, state }) {
       firebase.usersCollection

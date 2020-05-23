@@ -21,7 +21,19 @@
         </div>
       </div>
       <div class="col2">
-        <div>
+        <div v-if="posts.length">
+          <div v-for="post in posts" :key="post.id" class="post">
+            <h5>{{ post.userName }}</h5>
+            <span>{{ post.createdOn }}</span>
+            <p>{{ post.content }}</p>
+            <ul>
+              <li><a>Comments {{ posts.comments }}</a></li>
+              <li><a>Likes {{ posts.likes }}</a></li>
+              <li><a>View full post</a></li>
+            </ul>
+          </div>
+        </div>
+        <div v-else>
           <p>There are currently no posts.</p>
         </div>
       </div>
@@ -43,7 +55,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userProfile', 'currentUser'])
+    ...mapState(['userProfile', 'currentUser', 'posts'])
   },
   methods: {
     createPost() {
