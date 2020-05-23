@@ -18,6 +18,10 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    clearData({ commit }) {
+      commit('setCurrentUser', null)
+      commit('setUserProfile', {})
+    },
     fetchUserProfile({ commit, state }) {
       firebase.usersCollection
         .doc(state.currentUser.uid)
