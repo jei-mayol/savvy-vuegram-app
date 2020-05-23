@@ -24,8 +24,8 @@
         <div v-if="posts.length">
           <div v-for="post in posts" :key="post.id" class="post">
             <h5>{{ post.userName }}</h5>
-            <span>{{ post.createdOn }}</span>
-            <p>{{ post.content }}</p>
+            <span>{{ post.createdOn | formatDate }}</span>
+            <p>{{ post.content | trimLength }}</p>
             <ul>
               <li><a>Comments {{ posts.comments }}</a></li>
               <li><a>Likes {{ posts.likes }}</a></li>
@@ -44,6 +44,7 @@
 <script>
 import { mapState } from 'vuex'
 const firebase = require('../firebaseConfig')
+import moment from 'moment'
 
 export default {
   name: 'Dashboard',
@@ -73,6 +74,21 @@ export default {
       .catch(err => {
         console.log(err)
       })
+    }
+  },
+  filters: {
+    formatDate(val) {
+      if (!val) {
+        return '-'
+      }
+      let date = val.toDate()
+      return moment(date).fromNow()
+    },
+    trimLength(val) {
+      if (val.length < 200) {
+        return val
+      }
+      return `${val.substring(0, 200)}...`
     }
   }
 }
