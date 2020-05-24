@@ -6,23 +6,44 @@ Vue.use(Vuex)
 
 firebase.auth.onAuthStateChanged(user => {
   if (user) {
-    console.log('store/index.js onAuthStateChanged(), with logged in user')
 
     store.commit('setCurrentUser', user)
     store.dispatch('fetchUserProfile')
 
+    // realtime updates from our posts collection
     firebase.postsCollection
       .orderBy('createdOn', 'desc')
       .onSnapshot(querySnapShot => {
-        let posts = []
 
-        querySnapShot.forEach(doc => {
-          let post = doc.data()
-          post.id = doc.id
-          posts.push(post)
-        })
+        let createdByCurrentUser
+        if (querySnapShot.docs.length) {
+          createdByCurrentUser =
+            store.state.currentUser.uid ==
+            querySnapShot.docChanges()[0].doc.data().userId
+              ? true
+              : false
+        }
 
-        store.commit('setPosts', posts)
+        // add new posts to hiddenPosts array after initial load
+        if (querySnapShot.docChanges().length !== querySnapShot.docs.length
+            && querySnapShot.docChanges()[0].type == 'added' && !createdByCurrentUser) {
+
+              let post = querySnapShot.docChanges()[0].doc.data()
+              post.id = querySnapShot.docChanges()[0].doc.id
+
+              store.commit('setHiddenPosts', post)
+            }
+            else {
+              let posts = []
+
+              querySnapShot.forEach(doc => {
+                let post = doc.data()
+                post.id = doc.id
+                posts.push(post)
+              })
+      
+              store.commit('setPosts', posts)
+            }
       })
   }
 })
@@ -31,7 +52,8 @@ export const store = new Vuex.Store({
   state: {
     currentUser: null,
     userProfile: {},
-    posts: []
+    posts: [],
+    hiddenPosts: []
   },
   mutations: {
     setCurrentUser(state, val) {
@@ -41,7 +63,23 @@ export const store = new Vuex.Store({
       state.userProfile = val
     },
     setPosts(state, val) {
-      state.posts = val
+      if (val) {
+        state.posts = val
+      }
+      else {
+        state.posts = []
+      }
+    },
+    setHiddenPosts(state, val) {
+      if (val) {
+        // make sure not to add duplicates
+        if (!state.hiddenPosts.some(x => x.id === val.id)) {
+          state.hiddenPosts.unshift(val)
+        }
+      }
+      else {
+        state.hiddenPosts = []
+      }
     }
   },
   actions: {
