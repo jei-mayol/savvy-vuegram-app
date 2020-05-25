@@ -35,7 +35,7 @@
             <span>{{ post.createdOn | formatDate }}</span>
             <p>{{ post.content | trimLength }}</p>
             <ul>
-              <li><a>Comments {{ posts.comments }}</a></li>
+              <li><a @click="openCommentModal(post)">Comments {{ posts.comments }}</a></li>
               <li><a>Likes {{ posts.likes }}</a></li>
               <li><a>View full post</a></li>
             </ul>
@@ -46,6 +46,26 @@
         </div>
       </div>
     </section>
+
+    <!-- comment modal -->
+    <transition name="fade">
+      <div v-if="showCommentModal" class="c-modal">
+        <div class="c-container">
+          <a @click="closeCommentModal">X</a>
+          <p>Add a comment</p>
+          <form @submit.prevent>
+            <textarea v-model.trim="comment.content"></textarea>
+            <button
+              @click="addComment"
+              :disabled="comment.content == ''"
+              class="button"
+            >
+              Add comment
+            </button>
+          </form>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -61,6 +81,13 @@ export default {
       post: {
         content: ''
       },
+      comment: {
+        postId: '',
+        userId: '',
+        content: '',
+        postComments: 0
+      },
+      showCommentModal: false
     }
   },
   computed: {
@@ -89,6 +116,41 @@ export default {
       // clear hiddenPosts array and update (visible) posts array
       this.$store.commit('setHiddenPosts', null)
       this.$store.commit('setPosts', updatedPosts)
+    },
+    addComment() {
+      let postId = this.comment.postId
+      let postComments = this.comment.postComments
+
+      firebase.commentsCollection.add({
+        createdOn: new Date(),
+        content: this.comment.content,
+        postId: postId,
+        userId: this.currentUser.uid,
+        userName: this.userProfile.name
+      })
+      .then(doc => {
+        firebase.postsCollection.doc(postId).update({
+          comments: postComments + 1
+        })
+        .then(() => {
+          this.closeCommentModal()
+        })
+      })
+      .catch(err => {
+        console.log(err)
+      })
+    },
+    openCommentModal(post) {
+      this.comment.postId = post.id
+      this.comment.userId = post.userId
+      this.comment.postComments = post.comments
+      this.showCommentModal = true
+    },
+    closeCommentModal() {
+      this.comment.postId = ''
+      this.comment.userId = ''
+      this.comment.content = ''
+      this.showCommentModal = false
     }
   },
   filters: {
