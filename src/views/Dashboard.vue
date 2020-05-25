@@ -37,7 +37,7 @@
             <ul>
               <li><a @click="openCommentModal(post)">Comments {{ post.comments }}</a></li>
               <li><a @click="likePost(post.id, post.likes)">Likes {{ post.likes }}</a></li>
-              <li><a>View full post</a></li>
+              <li><a @click="viewPost(post)">View full post</a></li>
             </ul>
           </div>
         </div>
@@ -66,6 +66,31 @@
         </div>
       </div>
     </transition>
+
+    <!-- post modal -->
+    <transition name="fade">
+      <div v-if="showPostModal" class="p-modal">
+        <div class="p-container">
+          <a @click="closePostModal" class="close">X</a>
+          <div class="post">
+            <h5>{{ fullPost.userName }}</h5>
+            <span>{{ fullPost.createdOn | formatDate }}</span>
+            <p>{{ fullPost.content }}</p>
+            <ul>
+              <li><a>Comments {{ fullPost.comments }}</a></li>
+              <li><a>Likes {{ fullPost.likes }}</a></li>
+            </ul>
+          </div>
+          <div v-show="postComments.length" class="comments">
+            <div v-for="comment in postComments" :key="comment.id" class="comment">
+              <p>{{ comment.userName }}</p>
+              <span>{{ comment.createdOn | formatDate }}</span>
+              <p>{{ comment.content }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -87,7 +112,10 @@ export default {
         content: '',
         postComments: 0
       },
-      showCommentModal: false
+      showCommentModal: false,
+      showPostModal: false,
+      fullPost: {},
+      postComments: []
     }
   },
   computed: {
@@ -177,6 +205,39 @@ export default {
         .catch(err => {
           console.log(err)
         })
+    },
+    viewPost(post) {
+      firebase.commentsCollection
+        .where('postId', '==', post.id)
+        // NOTE: This wasn't part of the tutorial, but I created
+        // a composite index for this in the Firebase console (under Database):
+        // fields indexed: 'postId' asc and 'createdOn' desc in 'comments' collection
+        // This makes the comments appear newest first, as opposed to the more random
+        // order if we only queried the matching postId
+        //
+        // Without this composite index, Firestore couldn't sort on the "where '=='" query.
+        .orderBy('createdOn', 'desc')
+        .get()
+        .then(docs => {
+          let commentsArray = []
+
+          docs.forEach(doc => {
+            let comment = doc.data()
+            comment.id = doc.id
+            commentsArray.push(comment)
+          })
+
+          this.postComments = commentsArray
+          this.fullPost = post
+          this.showPostModal = true
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    },
+    closePostModal() {
+      this.postComments = []
+      this.showPostModal = false
     }
   },
   filters: {
