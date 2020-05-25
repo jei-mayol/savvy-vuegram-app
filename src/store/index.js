@@ -10,6 +10,12 @@ firebase.auth.onAuthStateChanged(user => {
     store.commit('setCurrentUser', user)
     store.dispatch('fetchUserProfile')
 
+    // updates our current user profile in the state whenever
+    // the user updates his/her profile settings
+    firebase.usersCollection.doc(user.uid).onSnapshot(doc => {
+      store.commit('setUserProfile', doc.data())
+    })
+
     // realtime updates from our posts collection
     firebase.postsCollection
       .orderBy('createdOn', 'desc')
@@ -94,6 +100,42 @@ export const store = new Vuex.Store({
         .get()
         .then(res => {
           commit('setUserProfile', res.data())
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    },
+    updateProfile({ commit, state }, data) {
+      let name = data.name
+      let title = data.title
+
+      firebase.usersCollection
+        .doc(state.currentUser.uid)
+        .update({ name, title })
+        .then(user => {
+          // update all posts by user to reflect new name
+          firebase.postsCollection
+            .where('userId', '==', state.currentUser.uid)
+            .get()
+            .then(docs => {
+              docs.forEach(doc => {
+                firebase.postsCollection.doc(doc.id).update({
+                  userName: name
+                })
+              })
+            })
+
+          // update all comments by user to reflect new name
+          firebase.commentsCollection
+            .where('userId', '==', state.currentUser.uid)
+            .get()
+            .then(docs => {
+              docs.forEach(doc => {
+                firebase.commentsCollection.doc(doc.id).update({
+                  userName: name
+                })
+              })
+            })
         })
         .catch(err => {
           console.log(err)
