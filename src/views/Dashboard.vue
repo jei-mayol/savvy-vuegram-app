@@ -35,8 +35,8 @@
             <span>{{ post.createdOn | formatDate }}</span>
             <p>{{ post.content | trimLength }}</p>
             <ul>
-              <li><a @click="openCommentModal(post)">Comments {{ posts.comments }}</a></li>
-              <li><a>Likes {{ posts.likes }}</a></li>
+              <li><a @click="openCommentModal(post)">Comments {{ post.comments }}</a></li>
+              <li><a @click="likePost(post.id, post.likes)">Likes {{ post.likes }}</a></li>
               <li><a>View full post</a></li>
             </ul>
           </div>
@@ -151,6 +151,32 @@ export default {
       this.comment.userId = ''
       this.comment.content = ''
       this.showCommentModal = false
+    },
+    likePost(postId, postLikes) {
+      let docId = `${this.currentUser.uid}_${postId}`
+
+      firebase.likesCollection
+        .doc(docId)
+        .get()
+        .then(doc => {
+
+          if (doc.exists) {
+            return
+          }
+
+          firebase.likesCollection.doc(docId).set({
+            postId: postId,
+            userId: this.currentUser.uid
+          })
+          .then(() => {
+            firebase.postsCollection.doc(postId).update({
+              likes: postLikes + 1
+            })
+          })
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   },
   filters: {
